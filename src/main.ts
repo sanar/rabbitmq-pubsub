@@ -1,6 +1,12 @@
-export {IRabbitMqConnectionFactory,IRabbitMqConnectionConfig,RabbitMqConnectionFactory,RabbitMqSingletonConnectionFactory} from "./connectionFactory";
-export {RabbitMqConsumer,IRabbitMqConsumerDisposer} from "./consumer";
-export {RabbitMqProducer} from "./producer";
-export {RabbitMqPublisher} from './publisher';
-export {RabbitMqSubscriber} from './subscriber';
-export {IQueueNameConfig} from "./common";
+
+export {
+  IRabbitMqConnectionFactory,
+  IRabbitMqConnectionConfig,
+  RabbitMqSingletonConnectionFactory,
+} from './connectionFactory';
+
+export { RabbitMqPublisher } from './publisher';
+export { RabbitMqConsumer, IRabbitMqConsumerDisposer } from './consumer';
+export { RabbitMqProducer } from './producer';
+export { RabbitMqSubscriber } from './subscriber';
+export { IQueueNameConfig } from './queue-name-config';

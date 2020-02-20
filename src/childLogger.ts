@@ -1,5 +1,7 @@
-import * as Logger from "bunyan";
+import * as Logger from 'bunyan';
 
 export function createChildLogger(logger: Logger, className: string) {
-  return logger.child({ child: "rabbitmq-pub-sub", "class": className }, true);
+  return logger.child({ child: 'rabbitmq-pub-sub', class: className }, true);
 }
+
+export default { createChildLogger };

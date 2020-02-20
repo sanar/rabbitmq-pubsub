@@ -1,9 +1,10 @@
-import * as amqp from "amqplib";
-import {IRabbitMqConnectionFactory} from "./connectionFactory";
-import * as Logger from "bunyan";
-import * as Promise from "bluebird";
-import {IQueueNameConfig, asQueueNameConfig} from "./common";
-import {createChildLogger} from "./childLogger";
+import * as amqp from 'amqplib';
+import * as Logger from 'bunyan';
+import * as BPromise from 'bluebird';
+import { IRabbitMqConnectionFactory } from './connectionFactory';
+import { IQueueNameConfig } from './queue-name-config';
+import { asQueueNameConfig } from './common';
+import { createChildLogger } from './childLogger';
 
 export interface IRabbitMqConsumerDisposer {
   (): Promise<void>;
@@ -11,14 +12,16 @@ export interface IRabbitMqConsumerDisposer {
 
 export class RabbitMqConsumer {
   constructor(private logger: Logger, private connectionFactory: IRabbitMqConnectionFactory) {
-    this.logger = createChildLogger(logger, "RabbitMqConsumer");
+    this.logger = createChildLogger(logger, 'RabbitMqConsumer');
   }
 
-  subscribe<T>(queue: string | IQueueNameConfig, action: (message: T) => Promise<any> | void): Promise<IRabbitMqConsumerDisposer> {
+  subscribe<T>(
+    queue: string | IQueueNameConfig,
+    action: (message: T) => Promise<any> | void,
+  ): Promise<IRabbitMqConsumerDisposer> {
     const queueConfig = asQueueNameConfig(queue);
-    return this.connectionFactory.create()
-      .then(connection => connection.createChannel())
-      .then(channel => {
+    return this.connectionFactory.getChannel()
+      .then((channel) => {
         this.logger.trace("got channel for queue '%s'", queueConfig.name);
         return this.setupChannel<T>(channel, queueConfig)
           .then(() => this.subscribeToChannel<T>(channel, queueConfig, action))
@@ -30,11 +33,15 @@ export class RabbitMqConsumer {
     return Promise.all(this.getChannelSetup(channel, queueConfig));
   }
 
-  private subscribeToChannel<T>(channel: amqp.Channel, queueConfig: IQueueNameConfig, action: (message: T) => Promise<any> | void) {
+  private subscribeToChannel<T>(
+    channel: amqp.Channel,
+    queueConfig: IQueueNameConfig,
+    action: (message: T) => Promise<any> | void,
+  ) {
     this.logger.trace("subscribing to queue '%s'", queueConfig.name);
     return channel.consume(queueConfig.name, (message) => {
       let msg: T;
-      Promise.try(() => {
+      BPromise.try(() => {
         msg = this.getMessageObject<T>(message);
         this.logger.trace("message arrived from queue '%s' (%j)", queueConfig.name, msg)
         return action(msg);
@@ -45,11 +52,11 @@ export class RabbitMqConsumer {
         this.logger.error(err, "message processing failed from queue '%j' (%j)", queueConfig, msg);
         channel.nack(message, false, false);
       });
-    }).then(opts => {
+    }).then((opts) => {
       this.logger.trace("subscribed to queue '%s' (%s)", queueConfig.name, opts.consumerTag)
       return (() => {
         this.logger.trace("disposing subscriber to queue '%s' (%s)", queueConfig.name, opts.consumerTag)
-        return Promise.resolve(channel.cancel(opts.consumerTag)).return();
+        return BPromise.resolve(channel.cancel(opts.consumerTag)).return();
       }) as IRabbitMqConsumerDisposer
     });
   }
@@ -63,14 +70,14 @@ export class RabbitMqConsumer {
       channel.assertQueue(queueConfig.name, this.getQueueSettings(queueConfig.dlx)),
       channel.assertQueue(queueConfig.dlq, this.getDLSettings()),
       channel.assertExchange(queueConfig.dlx, 'fanout', this.getDLSettings()),
-      channel.bindQueue(queueConfig.dlq, queueConfig.dlx, '*')
+      channel.bindQueue(queueConfig.dlq, queueConfig.dlx, '*'),
     ]
   }
 
   protected getQueueSettings(deadletterExchangeName: string): amqp.Options.AssertQueue {
-    var settings = this.getDLSettings();
+    const settings = this.getDLSettings();
     settings.arguments = {
-      'x-dead-letter-exchange': deadletterExchangeName
+      'x-dead-letter-exchange': deadletterExchangeName,
     }
     return settings;
   }
@@ -78,7 +85,7 @@ export class RabbitMqConsumer {
   protected getDLSettings(): amqp.Options.AssertQueue {
     return {
       durable: true,
-      autoDelete: false
+      autoDelete: false,
     }
   }
 }

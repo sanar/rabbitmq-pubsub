@@ -7,10 +7,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "declaration": false,
-    "outDir": "dist",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "outDir": "dist"
   },
   "files": [
     "src/main.ts"

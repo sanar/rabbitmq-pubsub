@@ -1,14 +1,14 @@
 {
-  "name": "rabbitmq-pub-sub",
+  "name": "sanar-rabbitmq-pub-sub",
   "version": "0.2.5",
   "description": "RabbitMq Producer and Consumer",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "webpack",
-    "build:watch": "webpack --watch",
+    "build": "tsc --skipLibCheck --outDir dist src/main.ts",
     "pretest": "npm run build",
     "jest": "./node_modules/.bin/jest",
     "test": "jest",
+    "eslint": "eslint 'src/*'",
     "test:watch": "npm test -- --watch",
     "test:notify": "npm run test:watch -- --notify",
     "coverage": "npm test -- --coverage",
@@ -25,12 +25,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@types/amqplib": "^0.5.1",
-    "@types/bunyan": "0.0.35",
-    "amqplib": "^0.5.1"
+    "amqplib": "^0.5.1",
+    "bluebird": "^3.7.2",
+    "bunyan": "^1.8.12"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.5.1",
     "@types/bluebird": "^3.0.37",
+    "@types/bunyan": "0.0.35",
     "@types/es6-shim": "^0.31.32",
     "@types/jest": "^18.1.1",
     "@types/node": "^7.0.5",
@@ -39,19 +41,18 @@
     "@types/superagent": "^2.0.36",
     "@types/supertest": "^2.0.0",
     "@types/when": "^2.4.28",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
     "awesome-typescript-loader": "^3.0.0-beta.19",
-    "bluebird": "^3.3.5",
-    "bunyan": "^1.8.5",
     "cdm-logger": "^0.3.2",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1",
     "jest": "^18.1.0",
     "jest-cli": "^18.1.0",
     "sinon": "^1.17.7",
     "ts-jest": "^18.0.2",
-    "tslint": "^4.4.2",
-    "tslint-loader": "^3.3.0",
-    "typescript": "^2.1.5",
-    "webpack": "^2.2.1",
-    "webpack-node-externals": "^1.5.4"
+    "typescript": "^3.7.5"
   },
   "jest": {
     "transform": {
