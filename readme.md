@@ -1,5 +1,7 @@
 # rabbitmq-pub-sub
 
+![Build CI](https://github.com/sanar/sanar-rabbitmq-pubsub/workflows/Node.js%20CI/badge.svg)
+
 TypeScript NodeJs Platform
 
 ## Introduction
@@ -7,17 +9,12 @@ TypeScript NodeJs Platform
 A typescript library for producing and consuming rabbitmq messages
 
 
-If you don't have `typings` installed:
-```
-npm i typings -g
-```
-
 ## Getting Started
 
 ### Installation
 Install via `npm`
 ```
-npm i rabbitmq-pub-sub --save
+npm i sanar-rabbitmq-pub-sub --save
 ```
 
 ## Example
