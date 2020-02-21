@@ -1,3 +1,16 @@
+jest.mock('amqplib', () => ({
+  connect: () => ({
+    createChannel: () => ({
+      assertQueue: () => true,
+      sendToQueue: () => true,
+      consume: () => true,
+      prefetch: () => true,
+      assertExchange: () => true,
+      bindQueue: () => true,
+    }),
+  }),
+}));
+
 import * as sinon from 'sinon';
 import { ConsoleLogger } from 'cdm-logger';
 import * as Promise from 'bluebird';

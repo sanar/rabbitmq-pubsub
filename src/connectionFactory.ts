@@ -43,10 +43,19 @@ export class RabbitMqSingletonConnectionFactory implements IRabbitMqConnectionFa
     return this.promise;
   }
 
-  async getChannel(): Promise<amqp.Channel> {
-    if (this.channel) {
-      this.channel = await (await this.create()).createChannel();
+  createNewChannel(): Promise<amqp.Channel> {
+    return this.create()
+      .then((connection) => connection.createChannel());
+  }
+
+  getChannel(): Promise<amqp.Channel> {
+    if (!this.channel) {
+      return this.createNewChannel()
+        .then((channel) => {
+          this.channel = channel;
+          return this.channel;
+        });
     }
-    return this.channel;
+    return Promise.resolve(this.channel);
   }
 }

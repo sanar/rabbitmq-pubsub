@@ -1,7 +1,7 @@
 
-import * as sinon from 'sinon';
+import * as amqp from 'amqplib';
 import { ConsoleLogger } from 'cdm-logger';
-import * as Promise from 'bluebird';
+import * as BPromise from 'bluebird';
 import {
   RabbitMqConsumer, RabbitMqProducer,
   IRabbitMqConnectionConfig, RabbitMqSingletonConnectionFactory,
@@ -21,6 +21,10 @@ interface IMessage {
 }
 
 describe('RabbitMqSingletonConnectionFactory Test', () => {
+  it('amqplib should be mocked', async () => {
+    expect(amqp).toBeTruthy();
+    expect((amqp as any).mock).toBeTruthy();
+  });
   it('Singleton Connection Factory should return singleton connection', () => {
     const f = new RabbitMqSingletonConnectionFactory(logger, config);
     return Promise.all([f.create(), f.create(), f.create()]).then((cons) => {
@@ -66,39 +70,35 @@ describe('RabbitMq Test', () => {
   })
 
   it('Consumer should subscribe and dispose ok with simple queue name', () => {
-    const spy = sinon.spy()
+    const spy = jest.fn();
     const factory = new RabbitMqSingletonConnectionFactory(logger, config);
     const consumer = new RabbitMqConsumer(logger, factory)
-    return consumer.subscribe<IMessage>(queueName, spy).then((s) => Promise.delay(500, s))
+    return consumer.subscribe<IMessage>(queueName, spy).then((s) => BPromise.delay(500, s))
       .then((disposer) => {
-        expect(disposer).toBeTruthy;
+        expect(disposer).toBeTruthy();
 
-        expect(spy.callCount).toEqual(0);
+        expect(spy).not.toBeCalled();
 
-        return disposer().then(() => expect.any);
-        // sub.dispose();
-        // expect(sub.isDisposed(), "Subscription should be disposed after 2nd dispose call").to.be.eq(true);
+        return disposer().then(expect.any);
       });
   });
 
   it('Consumer should subscribe and dispose ok with queue config', () => {
-    const spy = sinon.spy()
+    const spy = jest.fn(); 
     const factory = new RabbitMqSingletonConnectionFactory(logger, config);
     const consumer = new RabbitMqConsumer(logger, factory)
-    return consumer.subscribe<IMessage>(new DefaultQueueNameConfig(queueName), spy).then((s) => Promise.delay(500, s))
+    return consumer.subscribe<IMessage>(new DefaultQueueNameConfig(queueName), spy).then((s) => BPromise.delay(500, s))
       .then((disposer) => {
-        expect(disposer).toBeTruthy;
+        expect(disposer).toBeTruthy();
 
-        expect(spy.callCount).toEqual(0);
+        expect(spy).not.toBeCalled();
 
-        return disposer().then(() => expect.any);
-        // sub.dispose();
-        // expect(sub.isDisposed(), "Subscription should be disposed after 2nd dispose call").to.be.eq(true);
+        return disposer().then(expect.any);
       });
   });
 
   it('Consumer should recieve message from Producer', (done) => {
-    const spy = sinon.spy()
+    const spy = jest.fn();
     const factory = new RabbitMqSingletonConnectionFactory(logger, config);
     const consumer = new RabbitMqConsumer(logger, factory)
     return consumer.subscribe<IMessage>(queueName, spy).then((disposer) => {
@@ -106,15 +106,13 @@ describe('RabbitMq Test', () => {
       const msg: IMessage = { data: 'time', value: new Date().getTime() };
 
       return producer.publish<IMessage>(queueName, msg)
-        .then(() => Promise.delay(500))
+        .then(() => BPromise.delay(500))
         .then(() => {
-          expect(spy.callCount).toEqual(1);
-          expect(spy.firstCall.args).toBeTruthy;
-          expect(spy.firstCall.args.length).toEqual(1);
-          const consumedMsg = spy.firstCall.args[0] as IMessage;
-          expect(consumedMsg.data).toBeTruthy;
+          expect(spy).toHaveBeenCalledTimes(1);
+          const consumedMsg = spy.mock.calls[0][0] as IMessage;
+          expect(consumedMsg.data).toBeTruthy();
           expect(consumedMsg.data).toEqual(msg.data);
-          expect(consumedMsg.value).toBeTruthy;
+          expect(consumedMsg.value).toBeTruthy();
           expect(consumedMsg.value).toEqual(msg.value);
           disposer();
           done();
@@ -130,19 +128,8 @@ describe('RabbitMq Test', () => {
         const producer = new RabbitMqProducer(logger, factory)
         const msg: IMessage = { data: 'time', value: new Date().getTime() };
         return producer.publish<IMessage>(queueName, msg)
-          .then(() => Promise.delay(500))
+          .then(() => BPromise.delay(500))
           .then(disposer);
       })
   });
 })
-
-describe('Delete Queues After tests', () => {
-  it('Delete all test queues', () => {
-    const f = new RabbitMqSingletonConnectionFactory(logger, config);
-    const d = new DefaultQueueNameConfig(queueName);
-    return f.create().then((c) => c.createChannel().then((ch) => Promise.all([ch.deleteExchange(d.dlx), ch.deleteQueue(d.dlq), ch.deleteQueue(d.name)]).return()))
-  })
-})
-
-
-// const factory = new ConnectionFactory("amqp://localhost:1234");
